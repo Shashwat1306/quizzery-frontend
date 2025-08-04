@@ -1,5 +1,5 @@
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import axios from "axios";
 
 const AttemptQuiz = () => {
@@ -9,6 +9,7 @@ const AttemptQuiz = () => {
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null); // ← To hold the score
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -24,6 +25,22 @@ const AttemptQuiz = () => {
 
     fetchQuiz();
   }, [id]);
+  useEffect(() => {
+    if (!loading && quiz && !result) {
+      const interval = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(interval);
+            handleSubmit(); // ⏱️ Auto-submit
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval); // Cleanup on unmount
+    }
+  }, [loading, quiz, result]);
 
   const handleSubmit = async () => {
     try {
@@ -32,8 +49,8 @@ const AttemptQuiz = () => {
         answers,
       });
 
-      const { score, total } = res.data;
-      setResult({ score, total }); // ← Save the result in state
+      const { score, total, review } = res.data;
+      setResult({ score, total, review });
     } catch (err) {
       alert("Submission failed");
     }
@@ -45,25 +62,74 @@ const AttemptQuiz = () => {
   return (
     <div className="max-w-2xl mx-auto mt-10">
       <h2 className="text-2xl font-bold mb-4">Attempt Quiz</h2>
+      {!result && (
+        <p className="text-lg font-semibold text-red-600 mb-4">
+          Time Left: {Math.floor(timeLeft / 60)}:
+          {String(timeLeft % 60).padStart(2, "0")}
+        </p>
+      )}
 
       {result ? (
-        <div className="p-9 border rounded shadow bg-green-100 min-w-[300px] min-h-[200px]">
-          <p className="text-2xl font-bold text-green-700 mb-2">Result</p>
-          <p className="mt-3 text-lg">
-            Score: {result.score} / {result.total}
+        <div className="p-6 border rounded shadow bg-gray-50">
+          <p className="text-2xl font-bold text-green-700 mb-4">Quiz Review</p>
+          <p className="text-lg mb-2">
+            Score: {result.score} / {result.total} (
+            {((result.score / result.total) * 100).toFixed(2)}%)
           </p>
-          <p className="text-lg mb-4">
-            Percentage: {((result.score / result.total) * 100).toFixed(2)}%
-          </p>
+
+          <div className="space-y-6 mt-6">
+            {result.review.map((q, index) => (
+              <div key={index} className="p-4 border rounded bg-white shadow">
+                <p className="font-semibold mb-2">
+                  {index + 1}. {q.question}
+                </p>
+
+                {["A", "B", "C", "D"].map((opt) => (
+                  <p
+                    key={opt}
+                    className={
+                      "ml-4 " +
+                      (opt === q.correctAnswer
+                        ? "text-green-700 font-semibold"
+                        : opt === q.userAnswer
+                        ? "text-red-600"
+                        : "")
+                    }
+                  >
+                    {opt}. {q.options[opt]}
+                  </p>
+                ))}
+
+                <p className="mt-2 text-sm">
+                  Your Answer:{" "}
+                  <span
+                    className={
+                      q.userAnswer === q.correctAnswer
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {q.userAnswer || "Not Answered"}
+                  </span>
+                </p>
+
+                {q.userAnswer !== q.correctAnswer && (
+                  <p className="text-sm text-green-700">
+                    Correct Answer: {q.correctAnswer}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
           <button
             onClick={() => navigate("/all-quizzes")}
-            className="bg-blue-600 text-white px-5 py-2 rounded text-base"
+            className="mt-6 bg-blue-600 text-white px-5 py-2 rounded"
           >
             Back to All Quizzes
           </button>
         </div>
       ) : (
-        // ❓ Else show the quiz
         <>
           {quiz.questions.map((q, index) => (
             <div key={q._id} className="mb-6 p-4 border rounded shadow">
