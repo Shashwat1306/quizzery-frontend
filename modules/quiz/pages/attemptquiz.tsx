@@ -1,14 +1,44 @@
-import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { use, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 const AttemptQuiz = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [quiz, setQuiz] = useState(null);
+  type QuizQuestion = {
+    _id: string;
+    question: string;
+    optionA: string;
+    optionB: string;
+    optionC: string;
+    optionD: string;
+    // Add other fields if needed
+  };
+
+  type QuizType = {
+    _id: string;
+    title: string;
+    questions: QuizQuestion[];
+    // Add other fields if needed
+  };
+
+  const [quiz, setQuiz] = useState<QuizType | null>(null);
   const [loading, setLoading] = useState(true);
-  const [answers, setAnswers] = useState({});
-  const [result, setResult] = useState(null); // ← To hold the score
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  type QuizReview = {
+    question: string;
+    correctAnswer: string;
+    userAnswer: string;
+    options: { [key: string]: string };
+  };
+  
+  type ResultType = {
+    score: number;
+    total: number;
+    review: QuizReview[];
+  };
+  
+  const [result, setResult] = useState<ResultType | null>(null); // ← To hold the score
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
 
   useEffect(() => {
@@ -137,18 +167,34 @@ const AttemptQuiz = () => {
                 {index + 1}. {q.question}
               </p>
               <div className="space-y-2">
-                {["A", "B", "C", "D"].map((opt) => (
-                  <label key={opt} className="block">
-                    <input
-                      type="radio"
-                      name={`q${index}`}
-                      value={opt}
-                      checked={answers[q._id] === opt}
-                      onChange={() => setAnswers({ ...answers, [q._id]: opt })}
-                    />
-                    {` ${opt}. ${q[`option${opt}`]}`}
-                  </label>
-                ))}
+                {["A", "B", "C", "D"].map((opt) => {
+                  const getOptionValue = (q: QuizQuestion, opt: string) => {
+                    switch (opt) {
+                      case "A":
+                        return q.optionA;
+                      case "B":
+                        return q.optionB;
+                      case "C":
+                        return q.optionC;
+                      case "D":
+                        return q.optionD;
+                      default:
+                        return "";
+                    }
+                  };
+                  return (
+                    <label key={opt} className="block">
+                      <input
+                        type="radio"
+                        name={`q${index}`}
+                        value={opt}
+                        checked={answers[q._id] === opt}
+                        onChange={() => setAnswers({ ...answers, [q._id]: opt })}
+                      />
+                      {` ${opt}. ${getOptionValue(q, opt)}`}
+                    </label>
+                  );
+                })}
               </div>
             </div>
           ))}

@@ -12,7 +12,7 @@ import { loginSchema } from "../validations/register-validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { doLogin } from "../api/user-api";
 const Login = () => {
@@ -38,7 +38,7 @@ const Login = () => {
       </Alert>
     </div>
   );
-  const mySubmit = async (userObject) => {
+  const mySubmit = async (userObject: unknown) => {
     try {
       const result = await doLogin(userObject);
 
@@ -51,7 +51,7 @@ const Login = () => {
         setStatus(true);
         setMessage(result.data.message || "Invalid Login or Password");
       }
-    } catch (err) {
+    } catch (err:any) {
       setStatus(true);
       if (err.response && err.response.data && err.response.data.message) {
         setMessage(err.response.data.message);
