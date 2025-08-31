@@ -13,6 +13,7 @@ export type QuestionType = z.infer<typeof questionSchema>;
 const AddQuiz = () => {
   const [questions, setQuestions] = useState<QuestionType[]>([]);
   const [quizTitle, setQuizTitle] = useState("");
+  const [duration, setDuration] = useState(""); // ✅ matches backend schema
 
   const {
     register,
@@ -42,6 +43,11 @@ const AddQuiz = () => {
       return;
     }
 
+    if (!duration || Number(duration) <= 0) {
+      alert("Please enter a valid duration (in minutes)");
+      return;
+    }
+
     if (questions.length === 0) {
       alert("Add at least one question");
       return;
@@ -50,13 +56,15 @@ const AddQuiz = () => {
     const quizData = {
       title: quizTitle.trim(),
       questions,
+      duration: Number(duration), // ✅ now matches schema
     };
 
     try {
       const result = await submitQuiz(quizData);
       console.log("Quiz submitted successfully", result);
       setQuestions([]);
-      setQuizTitle(""); // reset after submission
+      setQuizTitle("");
+      setDuration(""); // reset after submission
     } catch (err) {
       console.error("Failed to submit quiz", err);
     }
@@ -67,6 +75,7 @@ const AddQuiz = () => {
       <div className="w-full max-w-md mx-auto p-6 border rounded-xl shadow bg-white">
         <h2 className="text-xl font-semibold text-center mb-4">Create Quiz</h2>
 
+        {/* Quiz Title */}
         <Input
           type="text"
           placeholder="Quiz Title"
@@ -75,6 +84,16 @@ const AddQuiz = () => {
           className="mb-4"
         />
 
+        {/* Duration Input */}
+        <Input
+          type="number"
+          placeholder="Duration (in minutes)"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          className="mb-4"
+        />
+
+        {/* Question Form */}
         <form onSubmit={handleSubmit(onAddQuestion)}>
           <Input
             type="text"
@@ -98,6 +117,7 @@ const AddQuiz = () => {
           {errors.optionA && (
             <p className="text-red-500 text-sm">{errors.optionA.message}</p>
           )}
+
           <div className="flex items-center gap-2 my-2">
             <input
               type="radio"
@@ -110,6 +130,7 @@ const AddQuiz = () => {
           {errors.optionB && (
             <p className="text-red-500 text-sm">{errors.optionB.message}</p>
           )}
+
           <div className="flex items-center gap-2 my-2">
             <input
               type="radio"
@@ -122,6 +143,7 @@ const AddQuiz = () => {
           {errors.optionC && (
             <p className="text-red-500 text-sm">{errors.optionC.message}</p>
           )}
+
           <div className="flex items-center gap-2 my-2">
             <input
               type="radio"

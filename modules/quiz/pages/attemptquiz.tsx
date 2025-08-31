@@ -5,6 +5,7 @@ import axios from "axios";
 const AttemptQuiz = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   type QuizQuestion = {
     _id: string;
     question: string;
@@ -12,40 +13,41 @@ const AttemptQuiz = () => {
     optionB: string;
     optionC: string;
     optionD: string;
-    // Add other fields if needed
   };
 
   type QuizType = {
     _id: string;
     title: string;
+    duration: number; // ✅ added duration
     questions: QuizQuestion[];
-    // Add other fields if needed
   };
 
   const [quiz, setQuiz] = useState<QuizType | null>(null);
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+
   type QuizReview = {
     question: string;
     correctAnswer: string;
     userAnswer: string;
     options: { [key: string]: string };
   };
-  
+
   type ResultType = {
     score: number;
     total: number;
     review: QuizReview[];
   };
-  
-  const [result, setResult] = useState<ResultType | null>(null); // ← To hold the score
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+
+  const [result, setResult] = useState<ResultType | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null); // ✅ start as null
 
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
         const res = await axios.get(`http://localhost:7778/api/quiz/${id}`);
         setQuiz(res.data);
+        setTimeLeft(res.data.duration * 60); // ✅ dynamic duration (minutes → seconds)
       } catch (err) {
         console.error("Error fetching quiz");
       } finally {
@@ -55,10 +57,12 @@ const AttemptQuiz = () => {
 
     fetchQuiz();
   }, [id]);
+
   useEffect(() => {
-    if (!loading && quiz && !result) {
+    if (!loading && quiz && !result && timeLeft !== null) {
       const interval = setInterval(() => {
         setTimeLeft((prevTime) => {
+          if (prevTime === null) return prevTime;
           if (prevTime <= 1) {
             clearInterval(interval);
             handleSubmit(); // ⏱️ Auto-submit
@@ -68,9 +72,9 @@ const AttemptQuiz = () => {
         });
       }, 1000);
 
-      return () => clearInterval(interval); // Cleanup on unmount
+      return () => clearInterval(interval);
     }
-  }, [loading, quiz, result]);
+  }, [loading, quiz, result, timeLeft]);
 
   const handleSubmit = async () => {
     try {
@@ -92,7 +96,7 @@ const AttemptQuiz = () => {
   return (
     <div className="max-w-2xl mx-auto mt-10">
       <h2 className="text-2xl font-bold mb-4">Attempt Quiz</h2>
-      {!result && (
+      {!result && timeLeft !== null && (
         <p className="text-lg font-semibold text-red-600 mb-4">
           Time Left: {Math.floor(timeLeft / 60)}:
           {String(timeLeft % 60).padStart(2, "0")}
@@ -189,7 +193,9 @@ const AttemptQuiz = () => {
                         name={`q${index}`}
                         value={opt}
                         checked={answers[q._id] === opt}
-                        onChange={() => setAnswers({ ...answers, [q._id]: opt })}
+                        onChange={() =>
+                          setAnswers({ ...answers, [q._id]: opt })
+                        }
                       />
                       {` ${opt}. ${getOptionValue(q, opt)}`}
                     </label>
