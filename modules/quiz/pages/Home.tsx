@@ -2,7 +2,7 @@ export const Home = () => {
   return (
     <div
       className="h-full flex items-center justify-center bg-gray-50 bg-cover bg-center"
-      style={{ backgroundImage: "url('../../image.jpg')" }}
+      style={{ backgroundImage: "url('../../src/assets/image.jpg')" }}
     >
       <div className="text-center bg-white bg-opacity-80 p-10 rounded-3xl shadow-lg hover:shadow-2xl transition-shadow duration-300 h-4xl">
         <h1 className="text-6xl font-bold text-purple-700 mb-4">
