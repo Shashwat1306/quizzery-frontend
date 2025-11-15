@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { doLogin } from "../api/user-api";
+import bgImage from "@/assets/image.jpg";
 const Login = () => {
   const [status, setStatus] = useState(false);
   const [message, setMessage] = useState("");
@@ -62,8 +63,8 @@ const Login = () => {
   };
 
   return (
-    <div className="h-full flex items-center justify-center ">
-      <Card className="w-full max-w-md mx-auto">
+    <div className="h-full flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: `url(${bgImage})` }}>
+      <Card className="w-full max-w-md mx-auto bg-white">
         <CardHeader>
           <CardTitle className="space-y-1 text-center">Login Here</CardTitle>
           <CardDescription className="text-center">

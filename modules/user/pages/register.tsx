@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import {Angry} from 'lucide-react';
 import { Alert, AlertTitle,AlertDescription } from "@/components/ui/alert";
 import { doRegister } from "../api/user-api";
+import bgImage from "@/assets/image.jpg";
 
 
 const Register = () => {
@@ -61,8 +62,8 @@ const Register = () => {
     }
   }
     return(
-        <div  className="h-full flex items-center justify-center">
-    <Card className="w-full max-w-md mx-auto">
+          <div  className="h-full flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: `url(${bgImage})` }}>
+      <Card className="w-full max-w-md mx-auto bg-white">
       <CardHeader>
         <CardTitle className="space-y-1 text-center">Welcome to Quizzery</CardTitle>
         <CardDescription className="text-center">
